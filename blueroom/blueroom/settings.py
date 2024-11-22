@@ -40,11 +40,14 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
 
     'rest_framework',
+    'corsheaders',
     
     'apps.accounts',
     'apps.rooms',
     'apps.chat',
 ]
+
+AUTH_USER_MODEL = 'accounts.User'
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
@@ -85,8 +88,12 @@ WSGI_APPLICATION = 'blueroom.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': 'blueroom',
+        'USER': 'root',
+        'PASSWORD': '239003',
+        'HOST': 'localhost',
+        'PORT': '3306',
     }
 }
 
