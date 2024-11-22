@@ -19,3 +19,18 @@ class User(AbstractUser):
 
     def __str__(self):
         return self.username
+
+
+class Note(models.Model):
+    id = models.BigAutoField(primary_key=True)
+    title = models.CharField(max_length=100)
+    content = models.TextField()
+    timestamp = models.DateTimeField(auto_now_add=True)
+    created_by = models.ForeignKey(User, on_delete=models.CASCADE, related_name="personal_notes")
+
+    class Meta:
+        db_table = 'notes'
+        managed = False
+
+    def __str__(self):
+        return self.title
