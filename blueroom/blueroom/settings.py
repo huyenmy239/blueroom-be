@@ -40,12 +40,21 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
 
     'rest_framework',
+    'rest_framework.authtoken',
     'corsheaders',
     
     'apps.accounts',
     'apps.rooms',
     'apps.chat',
 ]
+
+REST_FRAMEWORK = {
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.AllowAny',  # Không yêu cầu xác thực mặc định
+    ],
+}
+
+
 
 AUTH_USER_MODEL = 'accounts.User'
 
