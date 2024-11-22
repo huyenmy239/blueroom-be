@@ -49,11 +49,14 @@ INSTALLED_APPS = [
 ]
 
 REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework.authentication.TokenAuthentication',
+        'rest_framework.authentication.SessionAuthentication',
+    ],
     'DEFAULT_PERMISSION_CLASSES': [
-        'rest_framework.permissions.AllowAny',  # Không yêu cầu xác thực mặc định
+        'rest_framework.permissions.IsAuthenticated', 
     ],
 }
-
 
 
 AUTH_USER_MODEL = 'accounts.User'

@@ -6,7 +6,7 @@ from apps.rooms.models import Participation
 
 class Message(models.Model):
     id = models.BigAutoField(primary_key=True)
-    participation_id = models.ForeignKey(Participation, on_delete=models.CASCADE, related_name='messages', default=1)
+    participation_id = models.ForeignKey(Participation, on_delete=models.CASCADE, db_column='participation_id', related_name='messages', default=1)
     content = models.TextField()
     timestamp = models.DateTimeField(auto_now_add=True)
     type = models.CharField(

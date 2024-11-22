@@ -43,7 +43,6 @@ class UserViewSet(ModelViewSet):
 
         user = authenticate(username=username, password=password)
         if user:
-            # Generate or retrieve token
             token, _ = Token.objects.get_or_create(user=user)
             return Response({
                 "token": token.key,
@@ -83,11 +82,12 @@ class UserViewSet(ModelViewSet):
     def history(self, request):
         user = request.user
         last_24_hours = now() - timedelta(hours=24)
-        participations = Participation.objects.filter(user=user, time_in__gte=last_24_hours)
+
+        participations = Participation.objects.filter(user_id=user, time_in__gte=last_24_hours)
         history = [
             {
-                "room_id": participation.room.id,
-                "room_title": participation.room.title,
+                "room_id": participation.room_id.id,
+                "room_title": participation.room_id.title,
                 "time_in": participation.time_in,
                 "time_out": participation.time_out,
             }

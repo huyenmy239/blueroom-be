@@ -32,7 +32,7 @@ class Note(models.Model):
     title = models.CharField(max_length=100)
     content = models.TextField()
     timestamp = models.DateTimeField(auto_now_add=True)
-    created_by = models.ForeignKey(User, on_delete=models.CASCADE, related_name="personal_notes")
+    created_by = models.ForeignKey(User, on_delete=models.CASCADE, db_column='created_by', related_name="personal_notes")
 
     class Meta:
         db_table = 'notes'
