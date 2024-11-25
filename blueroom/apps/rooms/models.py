@@ -6,11 +6,11 @@ from apps.accounts.models import User
 
 class Background(models.Model):
     id = models.BigAutoField(primary_key=True)
-    url = models.CharField(max_length=255)
+    bg = models.ImageField(upload_to='room-backgrounds/', null=True, blank=True)
 
     class Meta:
         db_table = 'backgrounds'
-        managed = False
+        # managed = False
 
     def __str__(self):
         return self.url
@@ -28,7 +28,7 @@ class Room(models.Model):
 
     class Meta:
         db_table = 'rooms'
-        managed = False
+        # managed = False
 
     def __str__(self):
         return self.title
@@ -45,7 +45,7 @@ class Participation(models.Model):
 
     class Meta:
         db_table = 'participations'
-        managed = False
+        # managed = False
 
 class Subject(models.Model):
     id = models.BigAutoField(primary_key=True)
@@ -53,7 +53,7 @@ class Subject(models.Model):
 
     class Meta:
         db_table = 'subjects'
-        managed = False
+        # managed = False
 
     def __str__(self):
         return self.name
@@ -64,6 +64,6 @@ class RoomSubject(models.Model):
 
     class Meta:
         db_table = 'room_subjects'
-        managed = False
+        # managed = False
 
         unique_together = ('room_id', 'subject_id')

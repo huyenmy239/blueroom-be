@@ -21,7 +21,7 @@ class User(AbstractUser):
     
     class Meta:
         db_table = 'accounts'
-        managed = False
+        # managed = False
 
     def __str__(self):
         return self.username
@@ -36,7 +36,7 @@ class Note(models.Model):
 
     class Meta:
         db_table = 'notes'
-        managed = False
+        # managed = False
 
     def __str__(self):
         return self.title

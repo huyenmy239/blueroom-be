@@ -109,7 +109,7 @@ WSGI_APPLICATION = 'blueroom.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'blueroom',
+        'NAME': 'blue',
         'USER': 'root',
         'PASSWORD': '239003',
         'HOST': 'localhost',

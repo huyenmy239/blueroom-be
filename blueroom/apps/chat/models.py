@@ -16,7 +16,7 @@ class Message(models.Model):
 
     class Meta:
         db_table = 'messages'
-        managed = False
+        # managed = False
 
     def __str__(self):
         return f'Message {self.message_id} in participation {self.participation_id}'
