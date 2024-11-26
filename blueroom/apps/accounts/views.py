@@ -59,13 +59,19 @@ class UserViewSet(ModelViewSet):
         serializer = self.get_serializer(user)
         return Response(serializer.data)
 
-    @action(detail=False, methods=['put'], url_path='profile')
+    @action(detail=False, methods=['put'], url_path='profile/update')
     def update_profile(self, request):
         user = request.user
         serializer = self.get_serializer(user, data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
+
+        # Xử lý ảnh tải lên
+        avatar = request.FILES.get('profile_picture')  # Lấy tệp ảnh từ request
+        if avatar:
+            user.avatar = avatar
         serializer.save()
-        return Response({"message": "Profile updated successfully"}, status=200)
+
+        return Response({"message": "Profile updated successfully"}, status=status.HTTP_200_OK)
 
     @action(detail=False, methods=['put'], url_path='change-password')
     def change_password(self, request):
