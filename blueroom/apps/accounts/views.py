@@ -27,8 +27,8 @@ class UserViewSet(ModelViewSet):
         serializer.is_valid(raise_exception=True)
 
         validated_data = serializer.validated_data
-        validated_data['is_busy'] = False
-        validated_data['is_user'] = True
+        # validated_data['is_busy'] = False
+        # validated_data['is_user'] = True
         validated_data['password'] = make_password(validated_data['password'])
 
         user = serializer.save(**validated_data)
@@ -48,7 +48,7 @@ class UserViewSet(ModelViewSet):
                 "token": token.key,
                 "username": user.username,
                 "email": user.email,
-                "role": "User" if user.is_user else "Admin"
+                "role": "Admin" if user.is_admin else "User"
             }, status=200)
 
         return Response({"error": "Invalid username or password"}, status=401)
