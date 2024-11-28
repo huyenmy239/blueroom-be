@@ -1,17 +1,22 @@
 from rest_framework.viewsets import ModelViewSet
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
-from rest_framework.decorators import action
+from rest_framework.decorators import action, permission_classes
 from django.contrib.auth import authenticate
 from django.contrib.auth.hashers import make_password
 from rest_framework import status
 from rest_framework.authtoken.models import Token
 from datetime import timedelta
-from django.utils.timezone import now
+from datetime import datetime
+from django.utils.timezone import now, localtime
+from django.conf import settings
+
 from .models import User
 from .serializers import UserSerializer, LoginSerializer, UpdatePasswordSerializer
 from apps.rooms.models import Participation
+import pytz
 
+@permission_classes([AllowAny])
 class UserViewSet(ModelViewSet):
     queryset = User.objects.all()
     serializer_class = UserSerializer
@@ -99,4 +104,7 @@ class UserViewSet(ModelViewSet):
             }
             for participation in participations
         ]
+
+        print(participations)
+        
         return Response(history, status=200)

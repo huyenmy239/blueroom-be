@@ -142,11 +142,14 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = 'en-us'
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'Asia/Ho_Chi_Minh'
+
+# TIME_ZONE = 'Asia/Ho_Chi_Minh'  # Múi giờ UTC+7 cho Việt Nam
+# USE_TZ = True
 
 USE_I18N = True
 
-USE_TZ = True
+USE_TZ = False
 
 
 # Static files (CSS, JavaScript, Images)
