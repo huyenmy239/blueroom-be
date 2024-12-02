@@ -26,12 +26,14 @@ SECRET_KEY = 'django-insecure-h8u7%fabqtmyrdh#8-t3*9eg3gv*z1l@8bskg$@n*q+&jbj9nf
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['192.168.1.128', '192.168.1.82', 'localhost', '127.0.0.1', '192.168.1.17']
 
 
 # Application definition
 
 INSTALLED_APPS = [
+    'daphne',
+
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -42,6 +44,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'rest_framework.authtoken',
     'corsheaders',
+    'channels',
     
     'apps.accounts',
     'apps.rooms',
@@ -100,7 +103,7 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = 'blueroom.wsgi.application'
+# WSGI_APPLICATION = 'blueroom.wsgi.application'
 
 
 # Database
@@ -161,3 +164,19 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+ASGI_APPLICATION = 'blueroom.asgi.application'
+
+# CHANNEL_LAYERS = {
+#     'default': {
+#         'BACKEND': 'channels_redis.core.RedisChannelLayer',
+#         'CONFIG': {
+#             "hosts": [('127.0.0.1', 6379)],  # Redis sẽ chạy trên cổng này
+#         },
+#     },
+# }
+
+CHANNEL_LAYERS = {
+    'default': {
+        "BACKEND": "channels.layers.InMemoryChannelLayer",
+    }
+}
