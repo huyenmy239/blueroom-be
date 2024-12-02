@@ -8,8 +8,8 @@ from rest_framework import status
 from rest_framework.authtoken.models import Token
 from datetime import timedelta
 from django.utils.timezone import now
-from .models import User
-from .serializers import UserSerializer, LoginSerializer, UpdatePasswordSerializer
+from .models import User, Note
+from .serializers import UserSerializer, LoginSerializer, UpdatePasswordSerializer, NoteSerializer
 from apps.rooms.models import Participation
 
 class UserViewSet(ModelViewSet):
@@ -94,3 +94,39 @@ class UserViewSet(ModelViewSet):
             for participation in participations
         ]
         return Response(history, status=200)
+
+class NoteViewSet(ModelViewSet):
+    queryset = Note.objects.all()
+    serializer_class = NoteSerializer
+
+    def get_queryset(self):
+        queryset = Note.objects.filter(created_by=self.request.user)
+
+        title = self.request.query_params.get('title', None)
+        if title:
+            queryset = queryset.filter(title__icontains=title)
+        
+        timestamp = self.request.query_params.get('timestamp', None)
+        if timestamp:
+            queryset = queryset.filter(timestamp__date=timestamp)
+
+        return queryset
+
+    def retrieve(self, request, *args, **kwargs):
+        note = self.get_object()
+        if note.created_by != request.user:
+            return Response({"error": "You do not have permission to view this note."}, status=403)
+        serializer = self.get_serializer(note)
+        return Response(serializer.data)
+
+    def update(self, request, *args, **kwargs):
+        note = self.get_object()
+        if note.created_by != request.user:
+            return Response({"error": "You do not have permission to update this note."}, status=403)
+        return super().update(request, *args, **kwargs)
+
+    def destroy(self, request, *args, **kwargs):
+        note = self.get_object()
+        if note.created_by != request.user:
+            return Response({"error": "You do not have permission to delete this note."}, status=403)
+        return super().destroy(request, *args, **kwargs)
