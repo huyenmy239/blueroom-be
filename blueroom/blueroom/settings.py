@@ -26,6 +26,7 @@ SECRET_KEY = 'django-insecure-h8u7%fabqtmyrdh#8-t3*9eg3gv*z1l@8bskg$@n*q+&jbj9nf
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
+
 ALLOWED_HOSTS = ['*']
 
 
@@ -112,9 +113,9 @@ TEMPLATES = [
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'blue',
+        'NAME': 'bluespace',
         'USER': 'root',
-        'PASSWORD': '239003',
+        'PASSWORD': 'Hieu24122003@',
         'HOST': 'localhost',
         'PORT': '3306',
     }
@@ -164,6 +165,10 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+CORS_ALLOW_ALL_ORIGINS = True  # Cho phép tất cả các nguồn
+
+=======
 ASGI_APPLICATION = 'blueroom.asgi.application'
 
 # CHANNEL_LAYERS = {
