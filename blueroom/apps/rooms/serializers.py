@@ -14,18 +14,24 @@ class SubjectSerializer(serializers.ModelSerializer):
         fields = ['id', 'name']
 
 class RoomSubjectSerializer(serializers.ModelSerializer):
+    subject = SubjectSerializer(read_only=True)
     class Meta:
         model = RoomSubject
-        fields = ['subject_id']
+        fields = ['subject']
 
 class RoomSerializer(serializers.ModelSerializer):
-    subjects = RoomSubjectSerializer(many=True, read_only=True)
+    subjects = serializers.SerializerMethodField()  # Tạo trường tuỳ chỉnh
+    background = BackgroundSerializer(read_only=True)
     created_by = serializers.StringRelatedField(source='created_by.username', read_only=True)
 
     class Meta:
         model = Room
         fields = ['id', 'title', 'description', 'created_by', 'created_at', 'is_private', 
                   'background', 'enable_mic', 'members', 'subjects', 'is_active']
+
+    def get_subjects(self, obj):
+        subjects = Subject.objects.filter(rooms__room_id=obj)
+        return SubjectSerializer(subjects, many=True).data
 
 class EditRoomSerializer(serializers.ModelSerializer):
     subject = serializers.PrimaryKeyRelatedField(
@@ -105,9 +111,25 @@ class EditPermissionSerializer(serializers.ModelSerializer):
         instance.save()
         return instance
 
+class ParticipationSerializer(serializers.ModelSerializer):
+    user = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Participation
+        fields = ['id', 'user', 'time_in', 'mic_allow', 'chat_allow', 'is_blocked']
+
+    def get_user(self, obj):
+        return {
+            "id": obj.user_id.id,
+            "username": obj.user_id.username,
+            "avatar": self.context['request'].build_absolute_uri(obj.user_id.avatar.url)
+            if obj.user_id.avatar else None
+        }
+    
 class RoomActivitySerializer(serializers.ModelSerializer):
     participants = serializers.IntegerField()
 
     class Meta:
         model = Room
         fields = ['id', 'title', 'participants_count', 'created_at']
+

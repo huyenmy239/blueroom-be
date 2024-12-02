@@ -1,6 +1,6 @@
-from .serializers import SubjectSerializer, BackgroundSerializer, RoomSerializer, EditRoomSerializer, EditPermissionSerializer, RoomActivitySerializer
+from .serializers import SubjectSerializer, BackgroundSerializer, RoomSerializer, EditRoomSerializer, EditPermissionSerializer, RoomActivitySerializer, ParticipationSerializer
 from .permissions import IsAdminUser, IsRoomOwner
-from .models import Subject, Background, Room, Participation, User
+from .models import Subject, Background, Room, Participation, User, RoomSubject
 from rest_framework import viewsets, status
 from rest_framework.decorators import permission_classes, action
 from rest_framework.permissions import AllowAny
@@ -60,15 +60,38 @@ class RoomViewSet(ModelViewSet):
             raise PermissionDenied("Chỉ chủ phòng mới có quyền cập nhật thông tin phòng.")
         serializer.save()
 
-    @action(detail=True, methods=['get'], url_path='room-active')
+    @action(detail=False, methods=['get'], url_path='room-active')
     def listRoomActive(self, request):
-        active_rooms = Room.objects.filter(is_active=True)
+        active_rooms = Room.objects.filter(is_active=True).order_by('-created_at')
+
+        query = request.query_params.get('query', None) 
+        if query:
+            # Lọc theo 'title' 
+            active_rooms_title = active_rooms.filter(title__icontains=query)
+            
+            if active_rooms_title.exists():
+                active_rooms = active_rooms_title
+            else:
+                # Nếu không có kết quả, lọc theo 'subject_name'
+                room_subjects = RoomSubject.objects.filter(subject_id__name__icontains=query)
+                
+                # Lọc các phòng học có chủ đề tương ứng thông qua room_id
+                active_rooms = active_rooms.filter(id__in=room_subjects.values('room_id'))
+            
         serializer = RoomSerializer(active_rooms, many=True)
         return Response(serializer.data)
 
+
     @action(detail=True, methods=['get'], url_path='members-in-room')
-    def listMembersInRoom():
-        pass
+    def list_members_in_room(self, request, pk=None):
+        room = self.get_object()
+
+        participations = Participation.objects.filter(room_id=room, time_out__isnull=True)
+
+        serializer = ParticipationSerializer(participations, many=True, context={'request': request})
+
+        return Response(serializer.data)
+        
     
     @action(detail=True, methods=['post'], url_path='join')
     def join_room(self, request, pk=None):
@@ -79,6 +102,10 @@ class RoomViewSet(ModelViewSet):
         
         if user.is_busy:
             return Response({"message": "Bạn đang tham gia phòng khác, không thể tham gia thêm phòng."},
+                            status=status.HTTP_400_BAD_REQUEST)
+        
+        if not room.is_active:
+            return Response({"message": "Phòng học đã kết thúc."},
                             status=status.HTTP_400_BAD_REQUEST)
 
         participation = Participation.objects.filter(user_id=user, room_id=room).first()
@@ -185,23 +212,6 @@ class RoomViewSet(ModelViewSet):
             return Response({"message": "Quyền của người dùng đã được cập nhật."}, status=status.HTTP_200_OK)
         else:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-
-    # @action(detail=True, methods=['post'], url_path='lock')
-    # def lock_room(self, request, pk=None):
-    #     """Khóa phòng học."""
-    #     room = self.get_object()
-    #     room.is_locked = True
-    #     room.save()
-    #     return Response({"message": "Phòng đã được khóa."}, status=status.HTTP_200_OK)
-
-    # @action(detail=True, methods=['post'], url_path='unlock')
-    # def unlock_room(self, request, pk=None):
-    #     """Mở khóa phòng học."""
-    #     room = self.get_object()
-    #     room.is_locked = False
-    #     room.save()
-    #     return Response({"message": "Phòng đã được mở khóa."}, status=status.HTTP_200_OK)
 
 @permission_classes([AllowAny])
 class ReportViewSet(viewsets.ViewSet):
