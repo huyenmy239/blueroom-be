@@ -13,7 +13,7 @@ class Background(models.Model):
         # managed = False
 
     def __str__(self):
-        return self.url
+        return self.bg.url if self.bg else 'No background available'
 
 class Room(models.Model):
     id = models.BigAutoField(primary_key=True)
@@ -24,7 +24,9 @@ class Room(models.Model):
     is_private = models.BooleanField(default=False)
     background = models.ForeignKey(Background, on_delete=models.SET_NULL, db_column='background', null=True, blank=True)
     enable_mic = models.BooleanField(default=True)
-    members = models.IntegerField(default=0)
+    members = models.IntegerField(default=1)
+    members_max = models.IntegerField(default=1)
+    is_active = models.BooleanField(default=True)
 
     class Meta:
         db_table = 'rooms'
@@ -41,7 +43,7 @@ class Participation(models.Model):
     time_out = models.DateTimeField(null=True, blank=True)
     mic_allow = models.BooleanField(default=True)
     chat_allow = models.BooleanField(default=True)
-    is_blocked = models.BooleanField(default=False)
+    is_blocked = models.IntegerField(null=True)
 
     class Meta:
         db_table = 'participations'
@@ -49,7 +51,7 @@ class Participation(models.Model):
 
 class Subject(models.Model):
     id = models.BigAutoField(primary_key=True)
-    name = models.CharField(max_length=100)
+    name = models.CharField(max_length=100, unique=True)
 
     class Meta:
         db_table = 'subjects'

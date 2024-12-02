@@ -5,7 +5,10 @@ from . import views
 router = DefaultRouter()
 router.register(r'subjects', views.SubjectViewSet)
 router.register(r'backgrounds', views.BackgroundViewSet)
+router.register(r'room', views.RoomViewSet)
+router.register(r'admin/reports', views.ReportViewSet, basename='report')
 
 urlpatterns = [
     path('', include(router.urls)),
 ]
+
