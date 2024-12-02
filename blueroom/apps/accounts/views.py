@@ -1,17 +1,28 @@
 from rest_framework.viewsets import ModelViewSet
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
-from rest_framework.decorators import action
+from rest_framework.decorators import action, permission_classes
 from django.contrib.auth import authenticate
 from django.contrib.auth.hashers import make_password
 from rest_framework import status
 from rest_framework.authtoken.models import Token
 from datetime import timedelta
+<<<<<<< HEAD
 from django.utils.timezone import now
 from .models import User, Note
 from .serializers import UserSerializer, LoginSerializer, UpdatePasswordSerializer, NoteSerializer
-from apps.rooms.models import Participation
+=======
+from datetime import datetime
+from django.utils.timezone import now, localtime
+from django.conf import settings
 
+from .models import User
+from .serializers import UserSerializer, LoginSerializer, UpdatePasswordSerializer
+>>>>>>> 81eb6d1746736f02983bed7a86f70033087cd7d7
+from apps.rooms.models import Participation
+import pytz
+
+@permission_classes([AllowAny])
 class UserViewSet(ModelViewSet):
     queryset = User.objects.all()
     serializer_class = UserSerializer
@@ -27,8 +38,8 @@ class UserViewSet(ModelViewSet):
         serializer.is_valid(raise_exception=True)
 
         validated_data = serializer.validated_data
-        validated_data['is_busy'] = False
-        validated_data['is_user'] = True
+        # validated_data['is_busy'] = False
+        # validated_data['is_user'] = True
         validated_data['password'] = make_password(validated_data['password'])
 
         user = serializer.save(**validated_data)
@@ -48,7 +59,7 @@ class UserViewSet(ModelViewSet):
                 "token": token.key,
                 "username": user.username,
                 "email": user.email,
-                "role": "User" if user.is_user else "Admin"
+                "role": "Admin" if user.is_admin else "User"
             }, status=200)
 
         return Response({"error": "Invalid username or password"}, status=401)
@@ -59,13 +70,19 @@ class UserViewSet(ModelViewSet):
         serializer = self.get_serializer(user)
         return Response(serializer.data)
 
-    @action(detail=False, methods=['put'], url_path='profile')
+    @action(detail=False, methods=['put'], url_path='profile/update')
     def update_profile(self, request):
         user = request.user
         serializer = self.get_serializer(user, data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
+
+        # Xử lý ảnh tải lên
+        avatar = request.FILES.get('profile_picture')  # Lấy tệp ảnh từ request
+        if avatar:
+            user.avatar = avatar
         serializer.save()
-        return Response({"message": "Profile updated successfully"}, status=200)
+
+        return Response({"message": "Profile updated successfully"}, status=status.HTTP_200_OK)
 
     @action(detail=False, methods=['put'], url_path='change-password')
     def change_password(self, request):
@@ -93,6 +110,9 @@ class UserViewSet(ModelViewSet):
             }
             for participation in participations
         ]
+
+        print(participations)
+        
         return Response(history, status=200)
 
 class NoteViewSet(ModelViewSet):

@@ -133,3 +133,10 @@ class RoomActivitySerializer(serializers.ModelSerializer):
         model = Room
         fields = ['id', 'title', 'participants_count', 'created_at']
 
+
+class FileShareSerializer(serializers.Serializer):
+    file = serializers.FileField()
+
+
+class BlockUserSerializer(serializers.Serializer):
+    user_id = serializers.IntegerField()

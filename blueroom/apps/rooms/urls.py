@@ -10,5 +10,7 @@ router.register(r'admin/reports', views.ReportViewSet, basename="reports")
 
 urlpatterns = [
     path('', include(router.urls)),
+    path('<int:room_id>/mic/', views.ToggleMicView.as_view(), name='toggle_mic'),
+    path('<int:room_id>/block/', views.BlockUserView.as_view(), name='block_user'),
 ]
 

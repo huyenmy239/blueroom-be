@@ -26,12 +26,15 @@ SECRET_KEY = 'django-insecure-h8u7%fabqtmyrdh#8-t3*9eg3gv*z1l@8bskg$@n*q+&jbj9nf
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ["*"]
+
+ALLOWED_HOSTS = ['*']
 
 
 # Application definition
 
 INSTALLED_APPS = [
+    'daphne',
+
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -42,6 +45,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'rest_framework.authtoken',
     'corsheaders',
+    'channels',
     
     'apps.accounts',
     'apps.rooms',
@@ -100,7 +104,7 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = 'blueroom.wsgi.application'
+# WSGI_APPLICATION = 'blueroom.wsgi.application'
 
 
 # Database
@@ -142,11 +146,14 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = 'en-us'
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'Asia/Ho_Chi_Minh'
+
+# TIME_ZONE = 'Asia/Ho_Chi_Minh'  # Múi giờ UTC+7 cho Việt Nam
+# USE_TZ = True
 
 USE_I18N = True
 
-USE_TZ = True
+USE_TZ = False
 
 
 # Static files (CSS, JavaScript, Images)
@@ -161,3 +168,20 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 CORS_ALLOW_ALL_ORIGINS = True  # Cho phép tất cả các nguồn
 
+=======
+ASGI_APPLICATION = 'blueroom.asgi.application'
+
+# CHANNEL_LAYERS = {
+#     'default': {
+#         'BACKEND': 'channels_redis.core.RedisChannelLayer',
+#         'CONFIG': {
+#             "hosts": [('127.0.0.1', 6379)],  # Redis sẽ chạy trên cổng này
+#         },
+#     },
+# }
+
+CHANNEL_LAYERS = {
+    'default': {
+        "BACKEND": "channels.layers.InMemoryChannelLayer",
+    }
+}
