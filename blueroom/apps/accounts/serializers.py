@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import User
+from .models import User, Note
 
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
@@ -23,3 +23,8 @@ class LoginSerializer(serializers.Serializer):
 class UpdatePasswordSerializer(serializers.Serializer):
     old_password = serializers.CharField()
     new_password = serializers.CharField()
+
+class NoteSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Note
+        fields = ['id', 'title', 'content', 'timestamp', 'created_by']
