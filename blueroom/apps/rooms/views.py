@@ -19,7 +19,7 @@ from apps.accounts.models import User
 class SubjectViewSet(viewsets.ModelViewSet):
     queryset = Subject.objects.all()
     serializer_class = SubjectSerializer
-    permission_classes = [IsAdminUser]
+    # permission_classes = [IsAdminUser]
 
     def perform_create(self, serializer):
         serializer.save()
@@ -27,7 +27,7 @@ class SubjectViewSet(viewsets.ModelViewSet):
 class BackgroundViewSet(viewsets.ModelViewSet):
     queryset = Background.objects.all()
     serializer_class = BackgroundSerializer
-    permission_classes = [IsAdminUser]
+    # permission_classes = [IsAdminUser]
 
     def perform_create(self, serializer):
         serializer.save()
@@ -58,6 +58,8 @@ class RoomViewSet(ModelViewSet):
         self.request.user.save()
         room.members = 1
         room.save()
+
+        return Response({'room_id': room.id}, status=status.HTTP_201_CREATED)
 
     def perform_update(self, serializer):
         room = self.get_object()  

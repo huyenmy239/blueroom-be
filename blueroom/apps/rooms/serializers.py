@@ -43,7 +43,7 @@ class EditRoomSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Room
-        fields = ['title', 'subject', 'background', 'description', 'is_private', 'enable_mic']
+        fields = ['id', 'title', 'subject', 'background', 'description', 'is_private', 'enable_mic']
 
     def create(self, validated_data):
         # Lấy danh sách subject từ validated_data
