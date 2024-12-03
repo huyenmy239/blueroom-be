@@ -168,7 +168,6 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 CORS_ALLOW_ALL_ORIGINS = True  # Cho phép tất cả các nguồn
 
-=======
 ASGI_APPLICATION = 'blueroom.asgi.application'
 
 # CHANNEL_LAYERS = {

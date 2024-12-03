@@ -1,8 +1,8 @@
-from .serializers import SubjectSerializer, BackgroundSerializer, RoomSerializer, EditRoomSerializer, EditPermissionSerializer, RoomActivitySerializer, ParticipationSerializer
+from .serializers import SubjectSerializer, BackgroundSerializer, RoomSerializer, EditRoomSerializer, EditPermissionSerializer, ParticipationSerializer
 from .permissions import IsAdminUser, IsRoomOwner
 from .models import Subject, Background, Room, Participation, User, RoomSubject
 from rest_framework import viewsets, status
-from rest_framework.decorators import action
+from rest_framework.decorators import action, permission_classes
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
@@ -32,6 +32,7 @@ class BackgroundViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         serializer.save()
 
+@permission_classes([AllowAny])
 class RoomViewSet(ModelViewSet):
     queryset = Room.objects.all()
     permission_classes = [IsRoomOwner]
@@ -217,12 +218,14 @@ class RoomViewSet(ModelViewSet):
         else:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+
+@permission_classes([AllowAny])
 class ReportViewSet(viewsets.ViewSet):
     permission_classes = [IsAdminUser]
 
     @action(detail=False, methods=['get'], url_path="account-report")
     def reports(self, request, *args, **kwargs):
-        total_account = User.objects.filter(is_user=True).count()
+        total_account = User.objects.filter(is_admin=False).count()
         total_account_in_room = Participation.objects.filter(time_out__isnull=False).values('user_id').distinct().count()
 
         data = {

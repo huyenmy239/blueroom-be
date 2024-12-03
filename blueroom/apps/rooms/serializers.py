@@ -125,13 +125,6 @@ class ParticipationSerializer(serializers.ModelSerializer):
             "avatar": self.context['request'].build_absolute_uri(obj.user_id.avatar.url)
             if obj.user_id.avatar else None
         }
-    
-class RoomActivitySerializer(serializers.ModelSerializer):
-    participants = serializers.IntegerField()
-
-    class Meta:
-        model = Room
-        fields = ['id', 'title', 'participants_count', 'created_at']
 
 
 class FileShareSerializer(serializers.Serializer):
