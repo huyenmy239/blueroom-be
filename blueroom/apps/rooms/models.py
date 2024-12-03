@@ -27,6 +27,7 @@ class Room(models.Model):
     members = models.IntegerField(default=1)
     members_max = models.IntegerField(default=1)
     is_active = models.BooleanField(default=True)
+    
 
     class Meta:
         db_table = 'rooms'

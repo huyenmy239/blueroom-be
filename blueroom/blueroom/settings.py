@@ -113,9 +113,9 @@ TEMPLATES = [
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'bluespace',
+        'NAME': 'blue',
         'USER': 'root',
-        'PASSWORD': 'Hieu24122003@',
+        'PASSWORD': '239003',
         'HOST': 'localhost',
         'PORT': '3306',
     }
@@ -168,7 +168,6 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 CORS_ALLOW_ALL_ORIGINS = True  # Cho phép tất cả các nguồn
 
-=======
 ASGI_APPLICATION = 'blueroom.asgi.application'
 
 # CHANNEL_LAYERS = {
