@@ -10,11 +10,9 @@ from datetime import timedelta
 from datetime import datetime
 from django.utils.timezone import now, localtime
 from django.conf import settings
-
-from .models import User
-from .serializers import UserSerializer, LoginSerializer, UpdatePasswordSerializer
+from .models import User, Note
+from .serializers import UserSerializer, LoginSerializer, UpdatePasswordSerializer, NoteSerializer
 from apps.rooms.models import Participation
-import pytz
 
 @permission_classes([AllowAny])
 class UserViewSet(ModelViewSet):
@@ -108,3 +106,57 @@ class UserViewSet(ModelViewSet):
         print(participations)
         
         return Response(history, status=200)
+
+@permission_classes([AllowAny])
+class NoteViewSet(ModelViewSet):
+    queryset = Note.objects.all()
+    serializer_class = NoteSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        queryset = Note.objects.filter(created_by=self.request.user)
+
+        # Lọc theo tiêu đề nếu có
+        title = self.request.query_params.get('title', None)
+        if title:
+            queryset = queryset.filter(title__icontains=title)
+        
+        # Lọc theo timestamp nếu có
+        timestamp = self.request.query_params.get('timestamp', None)
+        if timestamp:
+            try:
+                timestamp = datetime.strptime(timestamp, "%Y-%m-%d")  # Đảm bảo rằng timestamp có định dạng đúng
+                queryset = queryset.filter(timestamp__date=timestamp)
+            except ValueError:
+                return Response({"error": "Invalid date format. Use 'YYYY-MM-DD'."}, status=400)
+
+        return queryset
+
+    def retrieve(self, request, *args, **kwargs):
+        note = self.get_object()
+        if note.created_by != request.user:
+            return Response({"error": "You do not have permission to view this note."}, status=403)
+        serializer = self.get_serializer(note)
+        return Response(serializer.data)
+
+    def update(self, request, *args, **kwargs):
+        note = self.get_object()
+        if note.created_by != request.user:
+            return Response({"error": "You do not have permission to update this note."}, status=403)
+        return super().update(request, *args, **kwargs)
+
+    def destroy(self, request, *args, **kwargs):
+        note = self.get_object()
+        if note.created_by != request.user:
+            return Response({"error": "You do not have permission to delete this note."}, status=403)
+        return super().destroy(request, *args, **kwargs)
+
+    def perform_create(self, serializer):
+        """
+        Override the default perform_create method to add the current user as the creator of the note.
+        """
+        if not self.request.user.is_authenticated:
+            return Response({"error": "You must be logged in to create a note."}, status=401)
+
+        # Lưu lại người dùng hiện tại là người tạo
+        serializer.save(created_by=self.request.user)

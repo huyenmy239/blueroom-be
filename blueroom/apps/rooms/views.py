@@ -1,8 +1,8 @@
-from .serializers import SubjectSerializer, BackgroundSerializer, RoomSerializer, EditRoomSerializer, EditPermissionSerializer, RoomActivitySerializer, ParticipationSerializer
+from .serializers import SubjectSerializer, BackgroundSerializer, RoomSerializer, EditRoomSerializer, EditPermissionSerializer, ParticipationSerializer
 from .permissions import IsAdminUser, IsRoomOwner
 from .models import Subject, Background, Room, Participation, User, RoomSubject
 from rest_framework import viewsets, status
-from rest_framework.decorators import permission_classes, action
+from rest_framework.decorators import action, permission_classes
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
@@ -10,6 +10,8 @@ from rest_framework.exceptions import ValidationError
 from django.utils.timezone import now, timezone
 from django.core.exceptions import PermissionDenied
 from django.db.models import Count, Sum
+
+from datetime import datetime
 from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
 from apps.accounts.models import User
@@ -64,7 +66,7 @@ class RoomViewSet(ModelViewSet):
         serializer.save()
 
     @action(detail=False, methods=['get'], url_path='room-active')
-    def listRoomActive(self, request):
+    def list_Room_Active(self, request):
         active_rooms = Room.objects.filter(is_active=True).order_by('-created_at')
 
         query = request.query_params.get('query', None) 
@@ -216,60 +218,89 @@ class RoomViewSet(ModelViewSet):
         else:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+
 @permission_classes([AllowAny])
 class ReportViewSet(viewsets.ViewSet):
     permission_classes = [IsAdminUser]
 
-    @action(detail=False, methods=['get'], url_path='room-activity')
-    def room_activity(self, request):
-        """
-        Lấy báo cáo tổng hợp về hoạt động phòng học.
-        """
-        # Tổng số phòng học
-        total_rooms = Room.objects.count()
-
-        total_participants = Room.objects.aggregate(total_participants=Sum('members_max'))['total_participants']
-
-        # Các phòng gần đây
-        recent_rooms = Room.objects.annotate(
-            participants_count=Count('participants')
-        ).order_by('-created_at')[:10]  
+    @action(detail=False, methods=['get'], url_path="account-report")
+    def reports(self, request, *args, **kwargs):
+        total_account = User.objects.filter(is_admin=False).count()
+        total_account_in_room = Participation.objects.filter(time_out__isnull=False).values('user_id').distinct().count()
 
         data = {
-            "total_rooms": total_rooms,
-            "total_participants": total_participants,
-            "recent_rooms": RoomActivitySerializer(recent_rooms, many=True).data
+            "total_account": total_account,
+            "account_in_room": total_account_in_room
+        }
+        return Response(data)
+    
+    @action(detail=False, methods=["get"], url_path="type-room-report")
+    def type_room(self, request, *args, **kwargs):
+        total_room_active = Room.objects.filter(is_active=True).count()
+        total_private_active = Room.objects.filter(is_active=True, is_private=True).count()
+
+        data = {
+            "total_room_active": total_room_active,
+            "total_private_room": total_private_active
         }
 
         return Response(data)
     
-    # @action(detail=False, methods=['get'], url_path='private-rooms')
-    # def private_rooms(self, request):
-    #     """
-    #     Lấy báo cáo về các phòng riêng (Private Rooms).
-    #     """
-    #     private_rooms = Room.objects.filter(is_private=True)
+    @action(detail=False, methods=["get"], url_path="room-active-report")
+    def room_active(self, request, *args, **kwargs):
+        total_room = Room.objects.all().count()
+        total_room_active = Room.objects.filter(is_active=True).count()
 
-    #     data = {
-    #         "private_rooms": PrivateRoomSerializer(private_rooms, many=True).data
-    #     }
+        data = {
+            "total_room": total_room,
+            "total_room_active": total_room_active
+        }
 
-    #     return Response(data)
+        return Response(data)
+    
+    @action(detail=False, methods=["post"], url_path="room-created-report")
+    def room_created(self, request, *args, **kwargs):
+        start_date = request.data.get("start_date")
+        end_date = request.data.get("end_date")
 
-    # @action(detail=False, methods=['get'], url_path='user-activity')
-    # def user_activity(self, request):
-    #     """
-    #     Lấy báo cáo về hoạt động người dùng.
-    #     """
-    #     user_activity = Participation.objects.filter(time_out__isnull=True).values('user_id').annotate(
-    #         total_participation=Count('user_id')
-    #     )
+        try:
+            start_date = datetime.strptime(start_date, "%Y-%m-%d")
+            end_date = datetime.strptime(end_date, "%Y-%m-%d")
+        except (TypeError, ValueError):
+            return Response({"error": "Invalid date format. Use 'YYYY-MM-DD'."}, status=400)
 
-    #     data = {
-    #         "user_activity": user_activity
-    #     }
+        rooms = Room.objects.filter(created_at__date__gte=start_date, created_at__date__lte=end_date)
 
-    #     return Response(data)
+        # Serialize danh sách các phòng
+        serializer = RoomSerializer(rooms, many=True)
+
+        data = {
+            "total_rooms_created": rooms.count(),
+            "rooms_created": serializer.data
+        }
+        return Response(data)
+        
+    @action(detail=False, methods=["post", "get"], url_path="room-popular-report")
+    def room_popular(self, request, *args, **kwargs):
+        try:
+            n_rooms = int(request.query_params.get("n", 10))
+        except ValueError:
+            return Response({"error": "Parameter 'n' must be an integer."}, status=400)
+
+        popular_rooms = (
+            Room.objects.filter(is_active=True)
+            .order_by('-members')[:n_rooms]  # Lấy n phòng đầu tiên
+        )
+
+        # Serialize danh sách phòng
+        serializer = RoomSerializer(popular_rooms, many=True)
+
+        data = {
+            "total_rooms": len(popular_rooms),
+            "rooms": serializer.data
+        }
+        return Response(data)
+
 
 
 class ToggleMicView(APIView):
