@@ -115,32 +115,13 @@ class RoomViewSet(ModelViewSet):
             return Response({"message": "Phòng học đã kết thúc."},
                             status=status.HTTP_400_BAD_REQUEST)
 
-        participation = Participation.objects.filter(user_id=user, room_id=room).first()
+        participation = Participation.objects.filter(user_id=user, room_id=room).order_by('-time_out').first()
 
         if participation and participation.is_blocked == room.id:
             return Response(
                 {"message": "Bạn đã bị cấm tham gia phòng này."},
                 status=status.HTTP_403_FORBIDDEN
             )
-        
-        # Kiểm tra nếu phòng là riêng tư
-        # if room.is_private:
-        #     return Response({"message": "Phòng riêng tư, chờ xác nhận từ chủ phòng."},
-        #                     status=status.HTTP_202_ACCEPTED)
-
-        
-
-        if participation:
-            participation.time_in = now() 
-            participation.time_out = None 
-            participation.save()  
-
-            user.is_busy = True
-            user.save()
-
-            room.members += 1
-            room.save()
-            return Response({"message": "Bạn đã tham gia lại phòng này."}, status=status.HTTP_200_OK)
         else:
             participation = Participation.objects.create(
                 user_id=user,
@@ -154,6 +135,25 @@ class RoomViewSet(ModelViewSet):
             room.members_max += 1
             room.save()
             return Response({"message": "Bạn đã tham gia phòng thành công."}, status=status.HTTP_200_OK)
+        # Kiểm tra nếu phòng là riêng tư
+        # if room.is_private:
+        #     return Response({"message": "Phòng riêng tư, chờ xác nhận từ chủ phòng."},
+        #                     status=status.HTTP_202_ACCEPTED)
+
+        
+
+        # if participation:
+        #     participation.time_in = now() 
+        #     participation.time_out = None 
+        #     participation.save()  
+
+        #     user.is_busy = True
+        #     user.save()
+
+        #     room.members += 1
+        #     room.save()
+        #     return Response({"message": "Bạn đã tham gia lại phòng này."}, status=status.HTTP_200_OK)
+        
 
     @action(detail=True, methods=['post'], url_path='leave')
     def leave_room(self, request, pk=None):
@@ -162,7 +162,7 @@ class RoomViewSet(ModelViewSet):
         user = request.user
 
         try:
-            participation = Participation.objects.get(user_id=user, room_id=room)
+            participation = Participation.objects.get(user_id=user, room_id=room, time_out__isnull=True)
         except Participation.DoesNotExist:
             return Response({"message": "Bạn chưa tham gia phòng này."},
                             status=status.HTTP_400_BAD_REQUEST)
