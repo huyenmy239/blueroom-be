@@ -204,6 +204,9 @@ class RoomViewSet(ModelViewSet):
         room = self.get_object()
         user = request.user
 
+        print(user)
+        print(room.created_by)
+
         # Kiểm tra nếu người dùng là chủ phòng
         if room.created_by != user:
             return Response(
@@ -214,9 +217,12 @@ class RoomViewSet(ModelViewSet):
         serializer = EditPermissionSerializer(data=request.data, context={'room': room})
         if serializer.is_valid():
             participation = Participation.objects.get(user_id=request.data['user_id'], room_id=room)
-            serializer.update(participation, serializer.validated_data)
+            updated_participation = serializer.update(participation, serializer.validated_data)
 
-            return Response({"message": "Quyền của người dùng đã được cập nhật."}, status=status.HTTP_200_OK)
+            return Response(
+                EditPermissionSerializer(updated_participation).data,
+                status=status.HTTP_200_OK
+            )
         else:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -307,6 +313,18 @@ class ReportViewSet(viewsets.ViewSet):
 
 class ToggleMicView(APIView):
     permission_classes = [IsAuthenticated]
+
+    def get(self, request, room_id):
+        try:
+            # Kiểm tra nếu người dùng tham gia phòng học
+            participation = Participation.objects.get(user_id=request.user, room_id=room_id)
+
+            # Trả về trạng thái mic_allow của người dùng
+            return Response({'mic_allow': participation.mic_allow}, status=status.HTTP_200_OK)
+
+        except Participation.DoesNotExist:
+            return Response({'error': 'You are not a participant of this room'}, status=status.HTTP_403_FORBIDDEN)
+
 
     def post(self, request, room_id):
         try:

@@ -61,10 +61,10 @@ class EditRoomSerializer(serializers.ModelSerializer):
 
 class EditPermissionSerializer(serializers.ModelSerializer):
 
-    user_id = serializers.IntegerField()
+    # user_id = serializers.IntegerField()
     mic_allow = serializers.BooleanField(required=False)
     chat_allow = serializers.BooleanField(required=False)
-    is_blocked = serializers.IntegerField(required=False, allow_null=True)
+    # is_blocked = serializers.IntegerField(required=False, allow_null=True)
 
     class Meta:
         model = Participation
@@ -82,9 +82,9 @@ class EditPermissionSerializer(serializers.ModelSerializer):
         except Participation.DoesNotExist:
             raise serializers.ValidationError({"user_id": "Người dùng này không tồn tại trong phòng."})
 
-        is_blocked = attrs.get('is_blocked')
-        if is_blocked is not None and is_blocked != room.id:
-            raise serializers.ValidationError({"is_blocked": "Chỉ có thể chặn người dùng trong phòng hiện tại."})
+        # is_blocked = attrs.get('is_blocked')
+        # if is_blocked is not None and is_blocked != room.id:
+        #     raise serializers.ValidationError({"is_blocked": "Chỉ có thể chặn người dùng trong phòng hiện tại."})
 
         return attrs
 
@@ -100,7 +100,7 @@ class EditPermissionSerializer(serializers.ModelSerializer):
         user = instance.user_id
 
         # Nếu bị chặn, cập nhật thời gian thoát
-        if instance.is_blocked == room.id:
+        if instance.is_blocked == 1:
             instance.time_out = now()
             room.members = max(0, room.members - 1)
             room.save()
@@ -113,10 +113,11 @@ class EditPermissionSerializer(serializers.ModelSerializer):
 
 class ParticipationSerializer(serializers.ModelSerializer):
     user = serializers.SerializerMethodField()
+    room_owner = serializers.SerializerMethodField()
 
     class Meta:
         model = Participation
-        fields = ['id', 'user', 'time_in', 'mic_allow', 'chat_allow', 'is_blocked']
+        fields = ['id', 'user', 'time_in', 'mic_allow', 'chat_allow', 'is_blocked', 'room_owner']
 
     def get_user(self, obj):
         return {
@@ -125,7 +126,14 @@ class ParticipationSerializer(serializers.ModelSerializer):
             "avatar": self.context['request'].build_absolute_uri(obj.user_id.avatar.url)
             if obj.user_id.avatar else None
         }
+    
 
+    def get_room_owner(self, obj):
+        # Lấy thông tin người tạo room (user_id của room_id)
+        room = obj.room_id
+
+        return room.created_by.id,
+                
 
 class FileShareSerializer(serializers.Serializer):
     file = serializers.FileField()
