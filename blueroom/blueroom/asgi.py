@@ -17,7 +17,8 @@ from channels.routing import ProtocolTypeRouter, URLRouter
 from channels.sessions import SessionMiddlewareStack
 from django.core.asgi import get_asgi_application
 from django.urls import path
-from apps.chat import consumers
+from apps.chat.consumers import ChatConsumer
+from apps.rooms.consumers import RoomConsumer
 
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "blueroom.settings")
 
@@ -25,7 +26,8 @@ application = ProtocolTypeRouter({
     "http": get_asgi_application(),
     "websocket": SessionMiddlewareStack(
         URLRouter([
-            path('ws/room/<int:room_id>/', consumers.ChatConsumer.as_asgi()),  # WebSocket URL
+            path('ws/room/<int:room_id>/', ChatConsumer.as_asgi()),
+            path("ws/rooms/", RoomConsumer.as_asgi()),
         ])
     ),
 })

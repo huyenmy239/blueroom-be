@@ -10,8 +10,11 @@ from rest_framework.exceptions import ValidationError
 from django.utils.timezone import now, timezone
 from django.core.exceptions import PermissionDenied
 from django.db.models import Count, Sum
+from django.http import HttpResponse, StreamingHttpResponse
+
 
 from datetime import datetime
+
 from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
 from apps.accounts.models import User
@@ -234,7 +237,7 @@ class ReportViewSet(viewsets.ViewSet):
     @action(detail=False, methods=['get'], url_path="account-report")
     def reports(self, request, *args, **kwargs):
         total_account = User.objects.filter(is_admin=False).count()
-        total_account_in_room = Participation.objects.filter(time_out__isnull=False).values('user_id').distinct().count()
+        total_account_in_room = Participation.objects.filter(time_out__isnull=True).values('user_id').distinct().count()
 
         data = {
             "total_account": total_account,
