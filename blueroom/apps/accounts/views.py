@@ -14,7 +14,6 @@ from .models import User, Note
 from .serializers import UserSerializer, LoginSerializer, UpdatePasswordSerializer, NoteSerializer
 from apps.rooms.models import Participation
 
-@permission_classes([AllowAny])
 class UserViewSet(ModelViewSet):
     queryset = User.objects.all()
     serializer_class = UserSerializer
@@ -109,7 +108,6 @@ class UserViewSet(ModelViewSet):
         
         return Response(history, status=200)
 
-@permission_classes([AllowAny])
 class NoteViewSet(ModelViewSet):
     queryset = Note.objects.all()
     serializer_class = NoteSerializer

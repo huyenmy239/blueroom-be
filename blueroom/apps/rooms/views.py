@@ -60,10 +60,9 @@ class BackgroundViewSet(viewsets.ModelViewSet):
         # Nếu không có Room nào sử dụng, thì xóa background
         return super().destroy(request, *args, **kwargs)
 
-@permission_classes([AllowAny])
 class RoomViewSet(ModelViewSet):
     queryset = Room.objects.all()
-    permission_classes = [IsRoomOwner]
+    permission_classes = [IsAuthenticated]
 
     def get_serializer_class(self):
         if self.action == 'create' or self.action == 'update':
@@ -201,7 +200,7 @@ class RoomViewSet(ModelViewSet):
             room.members = 1
             room.save()
 
-            other_participants = Participation.objects.filter(room_id=room)
+            other_participants = Participation.objects.filter(room_id=room, time_out__isnull=True)
 
             other_participants.update(time_out=now())
             other_participants_user_ids = other_participants.values_list('user_id', flat=True)
@@ -255,7 +254,6 @@ class RoomViewSet(ModelViewSet):
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-@permission_classes([AllowAny])
 class ReportViewSet(viewsets.ViewSet):
     permission_classes = [IsAdminUser]
 
@@ -345,7 +343,7 @@ class ToggleMicView(APIView):
     def get(self, request, room_id):
         try:
             # Kiểm tra nếu người dùng tham gia phòng học
-            participation = Participation.objects.get(user_id=request.user, room_id=room_id)
+            participation = Participation.objects.get(user_id=request.user, room_id=room_id, time_out__isnull=True)
 
             # Trả về trạng thái mic_allow của người dùng
             return Response({'mic_allow': participation.mic_allow}, status=status.HTTP_200_OK)
@@ -357,7 +355,7 @@ class ToggleMicView(APIView):
     def post(self, request, room_id):
         try:
             # Kiểm tra nếu người dùng tham gia phòng học
-            participation = Participation.objects.get(user_id=request.user, room_id=room_id)
+            participation = Participation.objects.get(user_id=request.user, room_id=room_id, time_out__isnull=True)
 
             # Chuyển trạng thái mic_allow
             participation.mic_allow = not participation.mic_allow
@@ -389,7 +387,7 @@ class BlockUserView(APIView):
         user_to_block = User.objects.get(id=request.data.get('user_id'))
         try:
             # Tìm tham gia phòng của người dùng cần block
-            participation = Participation.objects.get(room_id=room, user_id=user_to_block)
+            participation = Participation.objects.get(room_id=room, user_id=user_to_block, time_out__isnull=True)
         except Participation.DoesNotExist:
             return Response({'error': 'User is not a participant in this room'}, status=status.HTTP_404_NOT_FOUND)
 
