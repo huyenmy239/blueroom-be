@@ -170,7 +170,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
     @sync_to_async
     def create_message(self, user, content):
         return Message.objects.create(
-                participation_id=Participation.objects.get(room_id=self.room_id, user_id=user),
+                participation_id=Participation.objects.get(room_id=self.room_id, user_id=user, time_out__isnull=True),
                 content=content,
                 type='text',
             )
