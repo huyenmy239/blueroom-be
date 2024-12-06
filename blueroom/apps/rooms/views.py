@@ -27,13 +27,38 @@ class SubjectViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         serializer.save()
 
+    def destroy(self, request, *args, **kwargs):
+        # Lấy subject_id từ URL
+        subject_id = self.kwargs.get('pk')
+
+        # Kiểm tra xem subject đã xuất hiện trong bảng RoomSubject chưa
+        if RoomSubject.objects.filter(subject_id=subject_id).exists():
+            # Nếu có, trả về lỗi thông báo không thể xóa
+            return Response(
+                {"detail": "Cannot delete subject, it is already linked to a room."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # Nếu không có liên kết, thực hiện xóa bình thường
+        return super().destroy(request, *args, **kwargs)
+
 class BackgroundViewSet(viewsets.ModelViewSet):
     queryset = Background.objects.all()
     serializer_class = BackgroundSerializer
     # permission_classes = [IsAdminUser]
 
-    def perform_create(self, serializer):
-        serializer.save()
+    def destroy(self, request, *args, **kwargs):
+        background = self.get_object()
+
+        # Kiểm tra xem Background đã được sử dụng trong Room chưa
+        if Room.objects.filter(background=background).exists():
+            return Response(
+                {"detail": "This background is currently in use by a room and cannot be deleted."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # Nếu không có Room nào sử dụng, thì xóa background
+        return super().destroy(request, *args, **kwargs)
 
 @permission_classes([AllowAny])
 class RoomViewSet(ModelViewSet):
