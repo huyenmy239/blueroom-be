@@ -7,16 +7,13 @@ from django.forms.models import model_to_dict
 
 class RoomConsumer(AsyncWebsocketConsumer):
     async def connect(self):
-        # Tạo nhóm cho phòng để gửi thông báo cho tất cả các kết nối
         self.group_name = "rooms"
 
-        # Tham gia nhóm phòng
         await self.channel_layer.group_add(
             self.group_name,
             self.channel_name
         )
 
-        # Chấp nhận kết nối WebSocket
         await self.accept()
 
         data = await self.get_active_room()
@@ -28,39 +25,32 @@ class RoomConsumer(AsyncWebsocketConsumer):
 
 
     async def disconnect(self, close_code):
-        # Rời khỏi nhóm phòng khi kết nối bị ngắt
         await self.channel_layer.group_discard(
             self.group_name,
             self.channel_name
         )
 
-    # Nhận thông báo từ nhóm và gửi qua WebSocket
     async def receive(self, text_data):
-        # Xử lý dữ liệu nhận từ client (bao gồm thông báo tạo phòng)
         text_data_json = json.loads(text_data)
         if text_data_json['type'] == 'new_room':
-            # Nhận thông tin phòng mới
             room_data = text_data_json['room']
 
             print(room_data)
             
-            # Gửi thông báo về phòng mới cho tất cả các người dùng trong nhóm
             await self.channel_layer.group_send(
                 self.group_name,
                 {
                     'type': 'send_room_update',
-                    'room': room_data  # Gửi thông tin phòng mới đến nhóm
+                    'room': room_data
                 }
             )
 
-    # Gửi dữ liệu cập nhật lên nhóm
     async def send_room_update(self, event):
         room_data = event['room']
         
-        # Gửi dữ liệu phòng mới cho tất cả các client
         await self.send(text_data=json.dumps({
             'type': 'new_room',
-            'room': room_data  # Gửi thông tin phòng mới cho các client kết nối
+            'room': room_data
         }))
 
 

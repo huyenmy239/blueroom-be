@@ -22,42 +22,34 @@ from apps.accounts.models import User
 class SubjectViewSet(viewsets.ModelViewSet):
     queryset = Subject.objects.all()
     serializer_class = SubjectSerializer
-    # permission_classes = [IsAdminUser]
 
     def perform_create(self, serializer):
         serializer.save()
 
     def destroy(self, request, *args, **kwargs):
-        # Lấy subject_id từ URL
         subject_id = self.kwargs.get('pk')
 
-        # Kiểm tra xem subject đã xuất hiện trong bảng RoomSubject chưa
         if RoomSubject.objects.filter(subject_id=subject_id).exists():
-            # Nếu có, trả về lỗi thông báo không thể xóa
             return Response(
                 {"detail": "Cannot delete subject, it is already linked to a room."},
                 status=status.HTTP_400_BAD_REQUEST
             )
 
-        # Nếu không có liên kết, thực hiện xóa bình thường
         return super().destroy(request, *args, **kwargs)
 
 class BackgroundViewSet(viewsets.ModelViewSet):
     queryset = Background.objects.all()
     serializer_class = BackgroundSerializer
-    # permission_classes = [IsAdminUser]
 
     def destroy(self, request, *args, **kwargs):
         background = self.get_object()
 
-        # Kiểm tra xem Background đã được sử dụng trong Room chưa
         if Room.objects.filter(background=background).exists():
             return Response(
                 {"detail": "This background is currently in use by a room and cannot be deleted."},
                 status=status.HTTP_400_BAD_REQUEST
             )
 
-        # Nếu không có Room nào sử dụng, thì xóa background
         return super().destroy(request, *args, **kwargs)
 
 class RoomViewSet(ModelViewSet):
@@ -100,16 +92,13 @@ class RoomViewSet(ModelViewSet):
 
         query = request.query_params.get('query', None) 
         if query:
-            # Lọc theo 'title' 
             active_rooms_title = active_rooms.filter(title__icontains=query)
             
             if active_rooms_title.exists():
                 active_rooms = active_rooms_title
             else:
-                # Nếu không có kết quả, lọc theo 'subject_name'
                 room_subjects = RoomSubject.objects.filter(subject_id__name__icontains=query)
                 
-                # Lọc các phòng học có chủ đề tương ứng thông qua room_id
                 active_rooms = active_rooms.filter(id__in=room_subjects.values('room_id'))
             
         serializer = RoomSerializer(active_rooms, many=True)
@@ -129,7 +118,6 @@ class RoomViewSet(ModelViewSet):
     
     @action(detail=True, methods=['post'], url_path='join')
     def join_room(self, request, pk=None):
-        """Tham gia phòng học."""
         room = self.get_object()
         user = request.user
         
@@ -184,7 +172,6 @@ class RoomViewSet(ModelViewSet):
 
     @action(detail=True, methods=['post'], url_path='leave')
     def leave_room(self, request, pk=None):
-        """Rời phòng học."""
         room = self.get_object()
         user = request.user
 
@@ -194,7 +181,6 @@ class RoomViewSet(ModelViewSet):
             return Response({"message": "Bạn chưa tham gia phòng này."},
                             status=status.HTTP_400_BAD_REQUEST)
 
-        # Chủ phòng rời, đóng phòng
         if room.created_by == user:
             room.is_active = False
             room.members = 1
@@ -212,14 +198,12 @@ class RoomViewSet(ModelViewSet):
                 status=status.HTTP_200_OK
             )
         
-        # Người dùng thông thường rời phòng
         participation.time_out = now()
         participation.save()
 
         user.is_busy = False
         user.save()
 
-        # Giảm số lượng thành viên trong phòng
         room.members -= 1
         room.save()
 
@@ -227,14 +211,12 @@ class RoomViewSet(ModelViewSet):
 
     @action(detail=True, methods=['post'], url_path='edit-permissions')
     def edit_permissions(self, request, pk=None):
-        """Chỉnh sửa quyền mic_allow, chat_allow, is_blocked của một User trong phòng."""
         room = self.get_object()
         user = request.user
 
         print(user)
         print(room.created_by)
 
-        # Kiểm tra nếu người dùng là chủ phòng
         if room.created_by != user:
             return Response(
                 {"message": "Bạn không có quyền chỉnh sửa quyền của người dùng khác trong phòng này."},
@@ -305,7 +287,6 @@ class ReportViewSet(viewsets.ViewSet):
 
         rooms = Room.objects.filter(created_at__date__gte=start_date, created_at__date__lte=end_date)
 
-        # Serialize danh sách các phòng
         serializer = RoomSerializer(rooms, many=True)
 
         data = {
@@ -323,10 +304,9 @@ class ReportViewSet(viewsets.ViewSet):
 
         popular_rooms = (
             Room.objects.filter(is_active=True)
-            .order_by('-members')[:n_rooms]  # Lấy n phòng đầu tiên
+            .order_by('-members')[:n_rooms]
         )
 
-        # Serialize danh sách phòng
         serializer = RoomSerializer(popular_rooms, many=True)
 
         data = {
@@ -342,10 +322,8 @@ class ToggleMicView(APIView):
 
     def get(self, request, room_id):
         try:
-            # Kiểm tra nếu người dùng tham gia phòng học
             participation = Participation.objects.get(user_id=request.user, room_id=room_id, time_out__isnull=True)
 
-            # Trả về trạng thái mic_allow của người dùng
             return Response({'mic_allow': participation.mic_allow}, status=status.HTTP_200_OK)
 
         except Participation.DoesNotExist:
@@ -354,14 +332,11 @@ class ToggleMicView(APIView):
 
     def post(self, request, room_id):
         try:
-            # Kiểm tra nếu người dùng tham gia phòng học
             participation = Participation.objects.get(user_id=request.user, room_id=room_id, time_out__isnull=True)
 
-            # Chuyển trạng thái mic_allow
             participation.mic_allow = not participation.mic_allow
             participation.save()
 
-            # Trả về mã trạng thái HTTP 200 OK
             return Response({'mic_allow': participation.mic_allow}, status=status.HTTP_200_OK)
 
         except Participation.DoesNotExist:
@@ -373,31 +348,23 @@ class BlockUserView(APIView):
 
     def post(self, request, room_id):
         try:
-            # Tìm phòng học theo ID
             room = Room.objects.get(id=room_id)
             creator = room.created_by
         except Room.DoesNotExist:
             return Response({'error': 'Room not found'}, status=status.HTTP_404_NOT_FOUND)
 
-        # Kiểm tra xem người gọi API có phải là chủ phòng không
         if creator != request.user:
             return Response({'error': 'Only the room creator can block users'}, status=status.HTTP_403_FORBIDDEN)
 
-        # Lấy thông tin người dùng cần block từ request
         user_to_block = User.objects.get(id=request.data.get('user_id'))
         try:
-            # Tìm tham gia phòng của người dùng cần block
             participation = Participation.objects.get(room_id=room, user_id=user_to_block, time_out__isnull=True)
         except Participation.DoesNotExist:
             return Response({'error': 'User is not a participant in this room'}, status=status.HTTP_404_NOT_FOUND)
 
-        # Đánh dấu người dùng là bị block
         participation.is_blocked = True
-        participation.time_out = timezone.now()  # Đánh dấu thời gian rời khỏi phòng
+        participation.time_out = timezone.now()
         participation.save()
-
-        # Cập nhật thông tin tham gia của người bị block (có thể xóa tham gia nếu cần)
-        # Hoặc, bạn có thể chỉ cần trả về thông báo là người dùng bị block và rời khỏi phòng.
 
         return Response({'message': f'User {user_to_block.username} has been blocked and logged out of the room'},
                         status=status.HTTP_200_OK)

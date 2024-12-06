@@ -10,21 +10,16 @@ from asgiref.sync import async_to_sync, sync_to_async
 from channels.db import database_sync_to_async
 
 
-
-
 class ChatConsumer(AsyncWebsocketConsumer):
     async def connect(self):
-        # Lấy room_name từ URL hoặc các thông tin khác
         self.room_id = self.scope['url_route']['kwargs']['room_id']
         self.room_group_name = f'roomchat_{self.room_id}'
 
-        # Join the room group
         await self.channel_layer.group_add(
             self.room_group_name,
             self.channel_name
         )
 
-        # Accept WebSocket connection
         await self.accept()
 
         messages_data = await self.get_messages(self.room_id)
@@ -41,14 +36,12 @@ class ChatConsumer(AsyncWebsocketConsumer):
     
 
     async def disconnect(self, close_code):
-        # Leave the room group
         await self.channel_layer.group_discard(
             self.room_group_name,
             self.channel_name
         )
 
     async def receive(self, text_data):
-        # Parse the incoming message
         text_data_json = json.loads(text_data)
         type = text_data_json.get('type', '')
         
@@ -56,7 +49,6 @@ class ChatConsumer(AsyncWebsocketConsumer):
         content = text_data_json.get('content')
 
         if type == 'offer':
-            # Handle the offer from client
             offer = text_data_json.get('offer')
             await self.channel_layer.group_send(
                 self.room_group_name,
@@ -66,7 +58,6 @@ class ChatConsumer(AsyncWebsocketConsumer):
                 }
             )
         elif type == 'answer':
-            # Handle the answer from client
             answer = text_data_json.get('answer')
             await self.channel_layer.group_send(
                 self.room_group_name,
@@ -76,7 +67,6 @@ class ChatConsumer(AsyncWebsocketConsumer):
                 }
             )
         elif type == 'candidate':
-            # Handle ICE candidates from client
             candidate = text_data_json.get('candidate')
             await self.channel_layer.group_send(
                 self.room_group_name,
@@ -86,8 +76,6 @@ class ChatConsumer(AsyncWebsocketConsumer):
                 }
             )
         elif type == 'message':
-            # Handle chat message
-            # chat_message = text_data_json.get('message')
             username = text_data_json.get('user')
 
             user = await self.get_user(username)
@@ -104,28 +92,24 @@ class ChatConsumer(AsyncWebsocketConsumer):
             )
 
     async def offer(self, event):
-        # Send offer to WebSocket
         await self.send(text_data=json.dumps({
             'type': 'offer',
             'offer': event['offer']
         }))
 
     async def answer(self, event):
-        # Send answer to WebSocket
         await self.send(text_data=json.dumps({
             'type': 'answer',
             'answer': event['answer']
         }))
 
     async def candidate(self, event):
-        # Send ICE candidate to WebSocket
         await self.send(text_data=json.dumps({
             'type': 'candidate',
             'candidate': event['candidate']
         }))
 
     async def chat_message(self, event):
-        # Send chat message to WebSocket
         print(event['user'])
         await self.send(text_data=json.dumps({
             'type': 'message',
@@ -138,7 +122,6 @@ class ChatConsumer(AsyncWebsocketConsumer):
     def get_messages(self, room_id):
         messages = Message.objects.filter(participation_id__room_id=room_id).order_by('timestamp')
         messages_data = []
-        # Chuyển dữ liệu sang dạng list để dễ xử lý trong async context
 
         messages_data = [{
             'message': message.content,

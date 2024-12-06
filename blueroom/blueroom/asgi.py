@@ -7,10 +7,6 @@ For more information on this file, see
 https://docs.djangoproject.com/en/5.1/howto/deployment/asgi/
 """
 
-# your_project_name/asgi.py
-
-# your_project_name/asgi.py
-
 import os
 from channels.auth import AuthMiddlewareStack
 from channels.routing import ProtocolTypeRouter, URLRouter

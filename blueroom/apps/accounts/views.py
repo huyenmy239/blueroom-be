@@ -29,11 +29,9 @@ class UserViewSet(ModelViewSet):
         serializer.is_valid(raise_exception=True)
 
         validated_data = serializer.validated_data
-        # validated_data['is_busy'] = False
-        # validated_data['is_user'] = True
         validated_data['password'] = make_password(validated_data['password'])
         if 'avatar' not in validated_data or not validated_data['avatar']:
-            validated_data['avatar'] = 'avatars/default-avatar.png'  # Đường dẫn đến ảnh mặc định
+            validated_data['avatar'] = 'avatars/default-avatar.png'
 
         user = serializer.save(**validated_data)
         return Response({"message": "User registered successfully"}, status=status.HTTP_201_CREATED)
@@ -69,8 +67,7 @@ class UserViewSet(ModelViewSet):
         serializer = self.get_serializer(user, data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
 
-        # Xử lý ảnh tải lên
-        avatar = request.FILES.get('profile_picture')  # Lấy tệp ảnh từ request
+        avatar = request.FILES.get('profile_picture')
         if avatar:
             user.avatar = avatar
         serializer.save()
@@ -116,16 +113,14 @@ class NoteViewSet(ModelViewSet):
     def get_queryset(self):
         queryset = Note.objects.filter(created_by=self.request.user)
 
-        # Lọc theo tiêu đề nếu có
         title = self.request.query_params.get('title', None)
         if title:
             queryset = queryset.filter(title__icontains=title)
         
-        # Lọc theo timestamp nếu có
         timestamp = self.request.query_params.get('timestamp', None)
         if timestamp:
             try:
-                timestamp = datetime.strptime(timestamp, "%Y-%m-%d")  # Đảm bảo rằng timestamp có định dạng đúng
+                timestamp = datetime.strptime(timestamp, "%Y-%m-%d")
                 queryset = queryset.filter(timestamp__date=timestamp)
             except ValueError:
                 return Response({"error": "Invalid date format. Use 'YYYY-MM-DD'."}, status=400)
@@ -152,11 +147,8 @@ class NoteViewSet(ModelViewSet):
         return super().destroy(request, *args, **kwargs)
 
     def perform_create(self, serializer):
-        """
-        Override the default perform_create method to add the current user as the creator of the note.
-        """
+
         if not self.request.user.is_authenticated:
             return Response({"error": "You must be logged in to create a note."}, status=401)
 
-        # Lưu lại người dùng hiện tại là người tạo
         serializer.save(created_by=self.request.user)

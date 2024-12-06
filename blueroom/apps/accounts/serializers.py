@@ -8,9 +8,9 @@ class UserSerializer(serializers.ModelSerializer):
         extra_kwargs = {'password': {'write_only': True}}
 
     def update(self, instance, validated_data):
-        avatar = validated_data.pop('avatar', None)  # Lấy ảnh từ request
+        avatar = validated_data.pop('avatar', None)
         if avatar:
-            instance.avatar = avatar  # Gán ảnh cho trường avatar
+            instance.avatar = avatar
         for attr, value in validated_data.items():
             setattr(instance, attr, value)
         instance.save()
