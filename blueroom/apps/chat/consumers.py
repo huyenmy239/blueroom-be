@@ -1,13 +1,15 @@
+from django.contrib.auth import get_user_model
+from django.forms.models import model_to_dict
+from channels.generic.websocket import AsyncWebsocketConsumer
+from channels.db import database_sync_to_async
+from asgiref.sync import async_to_sync, sync_to_async
+
 import json
+
 from .models import Message
 from apps.rooms.models import Participation
 from apps.accounts.models import User
 from apps.accounts.serializers import UserSerializer
-from django.contrib.auth import get_user_model
-from django.forms.models import model_to_dict
-from channels.generic.websocket import AsyncWebsocketConsumer
-from asgiref.sync import async_to_sync, sync_to_async
-from channels.db import database_sync_to_async
 
 
 class ChatConsumer(AsyncWebsocketConsumer):

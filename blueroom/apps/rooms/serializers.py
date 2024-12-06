@@ -1,7 +1,8 @@
 from rest_framework import serializers
-from .models import Background, Subject, Room, RoomSubject, Participation
 from django.utils.timezone import now
 from django.db.models import Count
+
+from .models import Background, Subject, Room, RoomSubject, Participation
 
 class BackgroundSerializer(serializers.ModelSerializer):
     class Meta:

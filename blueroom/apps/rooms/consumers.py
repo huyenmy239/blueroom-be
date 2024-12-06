@@ -1,9 +1,11 @@
-import json
+from django.forms.models import model_to_dict
 from channels.generic.websocket import AsyncWebsocketConsumer
+from asgiref.sync import sync_to_async
+
+import json
+
 from .models import Room, RoomSubject
 from .serializers import RoomSerializer
-from asgiref.sync import sync_to_async
-from django.forms.models import model_to_dict
 
 class RoomConsumer(AsyncWebsocketConsumer):
     async def connect(self):

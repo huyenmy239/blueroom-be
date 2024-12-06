@@ -2,14 +2,15 @@ from rest_framework.viewsets import ModelViewSet
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
 from rest_framework.decorators import action, permission_classes
-from django.contrib.auth import authenticate
-from django.contrib.auth.hashers import make_password
 from rest_framework import status
 from rest_framework.authtoken.models import Token
-from datetime import timedelta
-from datetime import datetime
+from django.contrib.auth import authenticate
+from django.contrib.auth.hashers import make_password
 from django.utils.timezone import now, localtime
 from django.conf import settings
+
+from datetime import timedelta, datetime
+
 from .models import User, Note
 from .serializers import UserSerializer, LoginSerializer, UpdatePasswordSerializer, NoteSerializer
 from apps.rooms.models import Participation
