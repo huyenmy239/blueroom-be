@@ -78,7 +78,7 @@ class EditPermissionSerializer(serializers.ModelSerializer):
         room = self.context.get('room')
 
         try:
-            participation = Participation.objects.get(user_id=user_id, room_id=room)
+            participation = Participation.objects.get(user_id=user_id, room_id=room, time_out__isnull=True)
         except Participation.DoesNotExist:
             raise serializers.ValidationError({"user_id": "Người dùng này không tồn tại trong phòng."})
 

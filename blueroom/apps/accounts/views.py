@@ -33,6 +33,8 @@ class UserViewSet(ModelViewSet):
         # validated_data['is_busy'] = False
         # validated_data['is_user'] = True
         validated_data['password'] = make_password(validated_data['password'])
+        if 'avatar' not in validated_data or not validated_data['avatar']:
+            validated_data['avatar'] = 'avatars/default-avatar.png'  # Đường dẫn đến ảnh mặc định
 
         user = serializer.save(**validated_data)
         return Response({"message": "User registered successfully"}, status=status.HTTP_201_CREATED)

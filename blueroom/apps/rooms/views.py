@@ -244,7 +244,7 @@ class RoomViewSet(ModelViewSet):
 
         serializer = EditPermissionSerializer(data=request.data, context={'room': room})
         if serializer.is_valid():
-            participation = Participation.objects.get(user_id=request.data['user_id'], room_id=room)
+            participation = Participation.objects.get(user_id=request.data['user_id'], room_id=room, time_out__isnull=True)
             updated_participation = serializer.update(participation, serializer.validated_data)
 
             return Response(
