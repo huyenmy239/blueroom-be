@@ -44,11 +44,15 @@ Apply migrations to set up the database:
 python manage.py migrate
 ```
 
+### 5. Link to the Frontend
+- **Frontend Repository Link:** [BlueRoom Frontend GitHub](https://github.com/huyenmy239/blueroom-fe)
+
+- **Frontend Running URL:** [http://localhost:3000](http://localhost:5500)
+
 ### 5. Run the Development Server
 Start the local development server:
 ```bash
 python manage.py runserver
-```
 
 The server will be available at `http://localhost:8000`.
 
