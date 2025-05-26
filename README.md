@@ -55,7 +55,7 @@ The server will be available at `http://localhost:8000`.
 ### 6. Link to the Frontend
 - **Frontend Repository Link:** [BlueRoom Frontend GitHub](https://github.com/huyenmy239/blueroom-fe)
 
-- **Frontend Running URL:** [http://localhost:3000](http://localhost:5500)
+- **Frontend Running URL:** [http://localhost:5500](http://localhost:5500)
 
 
 ## API Endpoints
